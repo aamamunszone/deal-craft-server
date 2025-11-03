@@ -34,9 +34,36 @@ async function run() {
 
     // Products Collection
 
-    // all products get
+    // all products get & specific user's products(by email)
     app.get('/products', async (req, res) => {
-      const cursor = productsCollection.find();
+      // console.log(req.query)
+      const email = req.query.email;
+      const query = {};
+      if (email) {
+        query.email = email;
+      }
+      const cursor = productsCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    // recent product get (6)
+    app.get('/products/recent', async (req, res) => {
+      const sortFields = { created_at: -1 };
+      const limitNum = 6;
+      const projectFields = {
+        title: 1,
+        price_min: 1,
+        price_max: 1,
+        category: 1,
+        image: 1,
+        description: 1,
+      };
+      const cursor = productsCollection
+        .find()
+        .sort(sortFields)
+        .limit(limitNum)
+        .project(projectFields);
       const result = await cursor.toArray();
       res.send(result);
     });
