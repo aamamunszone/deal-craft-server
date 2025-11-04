@@ -30,9 +30,37 @@ async function run() {
     await client.connect();
 
     const database = client.db('deal_craft_db');
+    const usersCollection = database.collection('users');
     const productsCollection = database.collection('products');
+    const bidsCollection = database.collection('bids');
 
-    // Products Collection
+    // Users Collection APIs
+
+    // single user create with condition
+    app.post('/users', async (req, res) => {
+      const newUser = req.body;
+      const email = req.body.email;
+      const query = { email: email };
+      const existingUser = await usersCollection.findOne(query);
+      if (existingUser) {
+        res.send({
+          message: "User already exist, don't need to insert again.",
+        });
+      } else {
+        const result = await usersCollection.insertOne(newUser);
+        res.send(result);
+      }
+    });
+
+    // single user delete
+    app.delete('/users/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await usersCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // Products Collection APIs
 
     // all products get & specific user's products(by email)
     app.get('/products', async (req, res) => {
@@ -103,6 +131,43 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await productsCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // Bids Collection APIs
+
+    // all bids get & specific user's bids(by email)
+    app.get('/bids', async (req, res) => {
+      const email = req.query.email;
+      const query = {};
+      if (email) {
+        query.buyer_email = email;
+      }
+      const cursor = bidsCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    // specific bid get
+    app.get('/bids/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await bidsCollection.findOne(query);
+      res.send(result);
+    });
+
+    // new single bid create
+    app.post('/bids', async (req, res) => {
+      const newBids = req.body;
+      const result = await bidsCollection.insertOne(newBids);
+      res.send(result);
+    });
+
+    // single bid delete
+    app.delete('/bids/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await bidsCollection.deleteOne(query);
       res.send(result);
     });
 
