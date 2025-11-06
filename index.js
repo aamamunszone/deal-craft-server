@@ -148,6 +148,16 @@ async function run() {
       res.send(result);
     });
 
+    // bids by product
+    app.get('/products/bids/:id', async (req, res) => {
+      const sortFields = { bid_price: -1 };
+      const id = req.params.id;
+      const query = { product: id };
+      const cursor = bidsCollection.find(query).sort(sortFields);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     // specific bid get
     app.get('/bids/:id', async (req, res) => {
       const id = req.params.id;
@@ -158,8 +168,8 @@ async function run() {
 
     // new single bid create
     app.post('/bids', async (req, res) => {
-      const newBids = req.body;
-      const result = await bidsCollection.insertOne(newBids);
+      const newBid = req.body;
+      const result = await bidsCollection.insertOne(newBid);
       res.send(result);
     });
 
