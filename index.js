@@ -3,11 +3,38 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const admin = require('firebase-admin');
+const serviceAccount = require('./deal-craft-firebase-admin-key.json');
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
+const verifyFirebaseToken = async (req, res, next) => {
+  if (!req.headers.authorization) {
+    return res.status(401).send({ message: 'unauthorized access' });
+  }
+  const token = req.headers.authorization.split(' ')[1];
+  if (!token) {
+    return res.status(401).send({ message: 'unauthorized access' });
+  }
+
+  // verify token
+  try {
+    const userInfo = await admin.auth().verifyIdToken(token);
+    req.token_email = userInfo.email;
+    // console.log('after token validation : ', userInfo);
+    next();
+  } catch {
+    // console.log('invalid token');
+    return res.status(401).send({ message: 'unauthorized access' });
+  }
+};
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.h3kzrwg.mongodb.net/?appName=Cluster0`;
 
@@ -137,10 +164,14 @@ async function run() {
     // Bids Collection APIs
 
     // all bids get & specific user's bids(by email)
-    app.get('/bids', async (req, res) => {
+    app.get('/bids', verifyFirebaseToken, async (req, res) => {
+      // console.log('headers : ', req);
       const email = req.query.email;
       const query = {};
       if (email) {
+        if (email !== req.token_email) {
+          return res.status(403).send({ message: 'forbidden access' });
+        }
         query.buyer_email = email;
       }
       const cursor = bidsCollection.find(query);
@@ -149,7 +180,7 @@ async function run() {
     });
 
     // bids by product
-    app.get('/products/bids/:id', async (req, res) => {
+    app.get('/products/bids/:id', verifyFirebaseToken, async (req, res) => {
       const sortFields = { bid_price: -1 };
       const id = req.params.id;
       const query = { product: id };
