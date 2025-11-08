@@ -54,7 +54,7 @@ const verifyJWTToken = (req, res, next) => {
     if (err) {
       return res.status(401).send({ message: 'unauthorized access' });
     }
-    console.log('after decoded : ', decoded);
+    // console.log('after decoded : ', decoded);
     req.token_email = decoded.email;
     next();
   });
@@ -263,7 +263,7 @@ async function run() {
     });
 
     // Send a ping to confirm a successful connection
-    await client.db('admin').command({ ping: 1 });
+    // await client.db('admin').command({ ping: 1 });
     console.log(
       'Pinged your deployment. You successfully connected to MongoDB!'
     );
