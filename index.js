@@ -4,7 +4,12 @@ const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const admin = require('firebase-admin');
-const serviceAccount = require('./deal-craft-firebase-admin-key.json');
+// const serviceAccount = require('./deal-craft-firebase-admin-key.json');
+const decoded = Buffer.from(
+  process.env.FIREBASE_SERVICE_KEY,
+  'base64'
+).toString('utf8');
+const serviceAccount = JSON.parse(decoded);
 const jwt = require('jsonwebtoken');
 const app = express();
 const port = process.env.PORT || 3000;
@@ -78,7 +83,7 @@ app.get('/', (req, res) => {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const database = client.db('deal_craft_db');
     const usersCollection = database.collection('users');
