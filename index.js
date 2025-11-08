@@ -165,7 +165,7 @@ async function run() {
     });
 
     // new single product create
-    app.post('/products', async (req, res) => {
+    app.post('/products', verifyFirebaseToken, async (req, res) => {
       const newProduct = req.body;
       const result = await productsCollection.insertOne(newProduct);
       res.send(result);
@@ -214,7 +214,7 @@ async function run() {
     // });
 
     // all bids get & specific user's bids(by email) with jwt token verify
-    app.get('/bids', verifyJWTToken, async (req, res) => {
+    app.get('/bids', verifyFirebaseToken, async (req, res) => {
       const email = req.query.email;
       const query = {};
       if (email) {
